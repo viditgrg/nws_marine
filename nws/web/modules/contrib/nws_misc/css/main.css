@@ -1,0 +1,9 @@
+.col-3 {
+    display: block;
+    float: left;
+    width: 25%;
+    /* height: 100%; */
+}
+fieldset#edit-field-school--wrapper {
+    display: none;
+}

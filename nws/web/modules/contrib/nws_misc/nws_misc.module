@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Functions to support the matrics reports module.
+ */
+
+
+/**
+ * Implements hook_theme().
+ */
+function nws_misc_theme() {
+  return [
+    'map_block' => [
+      'variables' => ['items' => NULL, 'data' => NULL, 'events' => NULL],
+      'template' => 'map-block',
+    ],
+  ];
+}
+
+
+?>

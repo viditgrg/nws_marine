@@ -1,0 +1,5 @@
+name: Nws MISC
+description: Custom module for Drupal 10
+type: module
+core: 8.x
+core_version_requirement: ^8 || ^9 || ^10

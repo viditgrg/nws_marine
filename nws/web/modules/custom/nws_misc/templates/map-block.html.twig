@@ -1,0 +1,238 @@
+
+    <style>
+      #map {
+        height: 600px;
+        margin-bottom: 80px;
+      }
+      .red-box {
+        background-color: red;
+        padding: 5px;
+        color: white;
+      }
+      .logo {
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+      }
+      .leaflet-popup {
+        opacity: 1 !important;
+        /* bottom: 8px!important; */
+      }
+
+      .marker-link {
+        color: purple !important;
+        text-decoration: none;
+      }
+      .leaflet-popup-content-wrapper,
+      .leaflet-popup-tip {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+      .leaflet-popup-close-button {
+        display: none !important;
+      }
+      .leaflet-popup-content {
+        text-align: center;
+      }
+    </style>
+    <div id="map"></div>
+    
+   
+    <style>
+      .red-box {
+        border: 2px solid red !important;
+        background: none !important;
+        color: rgb(0, 0, 0) !important;
+        width: 40px !important;
+      }
+      div#block-nws-mapblock {
+    width: 1200px;
+    margin: 0 auto;
+}
+    </style>
+
+<script>
+// Initialize the map
+function initializeMap() {
+  var map = L.map("map").setView([-17.947, 122.234], 5);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  return map;
+}
+
+// Create the ISWAG marker
+function createISWAGMarker() {
+  const ISWAG = {
+    lat: -14.562317701914843,
+    long: 123.13476562500001,
+    image: "{{ url('<front>') }}/modules/custom/nws_misc/images/ISWAG.png",
+    name: "ISWAG",
+  };
+
+  return L.marker([ISWAG.lat, ISWAG.long], {
+    icon: L.icon({
+      iconUrl: ISWAG.image,
+      iconSize: [80, 80],
+      name: ISWAG.name,
+    }),
+  });
+}
+
+// Add TO group markers to the map and create persistent popups
+function addTOGroupMarkers(map, toGroups) {
+  toGroups.forEach(function (group) {
+    var marker = L.marker([group.lat, group.lon], {
+      icon: L.icon({
+        iconUrl: group.logo,
+        iconSize: [32, 32],
+        className: "logo",
+      }),
+    }).addTo(map);
+
+    var popup = createPopup(group, true);
+    map.addLayer(popup);
+  });
+}
+
+// Create a popup
+function createPopup(group, keepOpen = false) {
+  return L.popup({
+    closeOnClick: !keepOpen,
+    closeButton: !keepOpen,
+  })
+    .setLatLng([group.lat, group.lon])
+    .setContent('<a class="marker-link" href="' + group.page + '">' + group.name + "</a>");
+}
+
+// Add town markers to the map
+function addTownMarkers(map, towns) {
+  towns.forEach(function (town) {
+    L.marker([town.lat, town.lon], {
+      icon: L.divIcon({
+        className: "red-box",
+        html: town.name,
+      }),
+    }).addTo(map);
+  });
+}
+
+// Add child markers to the map and keep track of them
+function addChildMarkers(map, children, childMarkers) {
+  children.forEach(function (child) {
+    var marker = L.marker([child.lat, child.lon], {
+      icon: L.icon({
+        iconUrl: child.logo,
+        iconSize: [32, 32],
+        className: "logo",
+      }),
+    });
+    marker.bindPopup('<a class="marker-link" href="' + child.page + '">' + child.name + "</a>");
+    map.addLayer(marker);
+    childMarkers.push(marker);
+  });
+}
+
+// Handle map zoom events
+function handleZoomEvents(map, ISWAG_LAYER, toGroups) {
+  var childMarkers = [];
+
+  map.on("zoomend", function () {
+    if (map.getZoom() >= 7) {
+      if (map.hasLayer(ISWAG_LAYER)) {
+        map.removeLayer(ISWAG_LAYER);
+      }
+
+      toGroups.forEach(function (group) {
+        var bounds = map.getBounds();
+        if (bounds.contains([group.lat, group.lon])) {
+          addChildMarkers(map, group.children || [], childMarkers);
+        }
+      });
+    } else {
+      if (!map.hasLayer(ISWAG_LAYER)) {
+        map.addLayer(ISWAG_LAYER);
+      }
+
+      // Remove all child markers
+      childMarkers.forEach(function (marker) {
+        map.removeLayer(marker);
+      });
+      childMarkers = [];
+    }
+  });
+}
+
+// Initialize the map and add all elements
+function main() {
+  var map = initializeMap();
+  var ISWAG_LAYER = createISWAGMarker();
+  map.addLayer(ISWAG_LAYER);
+
+  var toGroups = [
+    {% for item in items %}
+        {
+            name: "{{ item['name']}}",
+            lat: {{ item['lat']}},
+            lon: {{ item['lon']}},
+            logo: "{{ item['logo']}}",
+            page: "{{ item['link']}}",
+            children: [
+                {% for children in item['children_map'] %}
+                    {
+                        name: "{{ children['name']}}",
+                        lat: {{ children['lat']}},
+                        lon: {{ children['lon']}},
+                        logo: "{{ children['logo']}}",
+                        page: "{{ children['link']}}",
+                    },
+                {% endfor %}
+            ],
+        },
+    {% endfor %}
+    {# {
+      name: "Ngarla",
+      lat: -18.43531904233737,
+      lon: 115.93450927734376,
+      logo: "logo-6.jpg",
+      page: "Ngarla.html",
+      children: [
+        {
+          name: "Ngarla Child 1",
+          lat: -18.5,
+          lon: 117,
+          logo: "logo-6.jpg",
+          page: "ngarla-child1.html",
+        },
+        {
+          name: "Ngarla Child 2",
+          lat: -18.45,
+          lon: 113,
+          logo: "logo-6.jpg",
+          page: "ngarla-child2.html",
+        },
+      ],
+    }, #}
+  ];
+
+  {# var towns = [
+    { name: "Karratha", lat: -20.736, lon: 115.846001 },
+    { name: "Port Hedland", lat: -21.310661, lon: 118.587822 },
+  ]; #}
+
+  addTOGroupMarkers(map, toGroups);
+  addTownMarkers(map, towns);
+  handleZoomEvents(map, ISWAG_LAYER, toGroups);
+
+  map.on("click", function (ev) {
+    var latlng = map.mouseEventToLatLng(ev.originalEvent);
+    console.log(latlng.lat + ", " + latlng.lng);
+  });
+}
+
+main();
+
+</script>

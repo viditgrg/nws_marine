@@ -1,0 +1,33 @@
+# york_misc.settings:
+#   path: '/admin/config/yrdsb/site'
+#   defaults:
+#     _form: '\Drupal\york_misc\Form\SiteConfigurationForm'
+#     _title: 'Site settings'
+#   requirements:
+#     _permission: 'site_setting form_permission'
+#   options:
+#     _admin_route: TRUE
+
+# york_misc.content:
+#   path: '/admin/add-event'
+#   defaults:
+#     _controller: '\Drupal\york_misc\Controller\DatasaveController::saveData'
+#     _title: 'Data Save'
+#   requirements:
+#     _permission: 'access content'
+
+# york_misc.custom_search:
+#   path: '/custom-search'
+#   defaults:
+#     _controller: '\Drupal\york_misc\Controller\CustomSearch::content'
+#     _title: 'Data Save'
+#   requirements:
+#     _permission: 'access content'
+
+# york_misc.calendar_page:
+#   path: '/calendar'
+#   defaults:
+#     _controller: '\Drupal\york_misc\Controller\Calendar::content'
+#     _title: 'Calendar'
+#   requirements:
+#     _permission: 'access content'
